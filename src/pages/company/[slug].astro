@@ -1,0 +1,40 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import NewsCard from "../../components/news/NewsCard.astro";
+import { getAllArticles } from "../../lib/data";
+
+export async function getStaticPaths() {
+  const { getAllArticles } = await import("../../lib/data");
+  const articles = getAllArticles();
+  const companies = new Set<string>();
+  articles.forEach((a) => (a.companies || []).forEach((c) => companies.add(c)));
+
+  const techCompanies = ["openai", "anthropic", "google", "meta", "microsoft", "nvidia", "amd", "intel", "tsmc", "spacex", "tesla", "apple", "amazon", "ibm", "oracle", "salesforce"];
+  
+  return techCompanies.map((slug) => ({
+    params: { slug },
+    props: { name: slug.charAt(0).toUpperCase() + slug.slice(1) },
+  }));
+}
+
+const { name, slug } = Astro.props;
+const articles = getAllArticles();
+const companyArticles = articles.filter((a) =>
+  a.title.toLowerCase().includes(name.toLowerCase()) ||
+  a.source.toLowerCase().includes(name.toLowerCase()) ||
+  (a.companies || []).some((c) => c.toLowerCase().includes(name.toLowerCase()))
+).slice(0, 20);
+---
+
+<BaseLayout title={name}>
+  <div class="mb-8">
+    <h1 class="text-xs font-semibold tracking-wide uppercase text-[var(--text-tertiary)] mb-2">Company</h1>
+    <p class="text-[var(--text-secondary)] text-sm">{companyArticles.length} articles mentioning {name}</p>
+  </div>
+
+  <div class="space-y-3">
+    {companyArticles.map((article) => (
+      <NewsCard {...article} publicationDate={new Date(article.publicationDate)} />
+    ))}
+  </div>
+</BaseLayout>
