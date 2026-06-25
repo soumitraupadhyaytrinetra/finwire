@@ -1,8 +1,8 @@
 {
-  "name": "deepwire",
+  "name": "finwire",
   "type": "module",
   "version": "1.0.0",
-  "description": "AI & DeepTech News Intelligence Platform",
+  "description": "Finance & Markets News Intelligence",
   "engines": {
     "node": ">=22.12.0"
   },
