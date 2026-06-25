@@ -13,12 +13,13 @@ interface StoredArticle {
   companies: string[]; technologies: string[]; processed: boolean;
 }
 
-const SKIP_SOURCES = new Set([
-  "arXiv AI", "arXiv ML", "arXiv Robotics", "arXiv Computer Vision", "arXiv Computation",
-  "Hacker News",
-  "Anthropic @X", "OpenAI @X", "Sam Altman", "Elon Musk",
-  "Andrej Karpathy", "Yann LeCun", "Demis Hassabis", "Mira Murati",
-  "Andrew Ng", "Kareem Carr",
+const SKIP_SOURCES = new Set<string>([
+  // Finance sources we deliberately skip crawling (low text or paywalled).
+  // Twitter-style feeds already absent from finance source list.
+  // SEC press releases are short by design; skip crawl to save time.
+  "SEC Press Releases",
+  "Federal Reserve",
+  "ECB",
 ]);
 
 function loadArticles(): StoredArticle[] {

@@ -105,7 +105,7 @@ async function ingestSource(source: { name: string; feedUrl: string; category: s
       existingUrls.add(item.url);
       newCount++;
 
-      const skipCrawl = source.name.includes("@X") || source.name === "Hacker News" || source.name.startsWith("arXiv");
+      const skipCrawl = source.name === "SEC Press Releases" || source.name === "Federal Reserve" || source.name === "ECB";
       if (!skipCrawl && item.url.startsWith("http")) {
         const crawled = await crawlArticle(item.url);
         if (crawled) {

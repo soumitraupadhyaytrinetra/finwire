@@ -2,7 +2,7 @@ import * as fs from "fs";
 import * as path from "path";
 import { getDb, closeDb } from "../src/lib/db/index";
 
-const ARXIV_API = "https://export.arxiv.org/api/query";
+const SEC_EDGAR_BASE = "https://www.sec.gov/cgi-bin/browse-edgar";
 const DATA_DIR = path.join(process.cwd(), "data");
 const ARTICLES_FILE = path.join(DATA_DIR, "articles.json");
 
@@ -25,96 +25,96 @@ function saveArticles(articles: StoredArticle[]) {
   fs.writeFileSync(ARTICLES_FILE, JSON.stringify(articles, null, 2));
 }
 
-async function backfillArxiv(query: string, source: string, category: string, maxResults = 500) {
+async function fetchEdgarRecent(cik: string, formType: string, count: number): Promise<Array<{ title: string; url: string; date: string }>> {
+  // SEC EDGAR browse-edgar action returns JSON when output=atom
+  const url = `${SEC_EDGAR_BASE}?action=getcompany&CIK=${cik}&type=${formType}&dateb=&owner=include&count=${count}&output=atom`;
+  try {
+    const res = await fetch(url, { headers: { "User-Agent": "FinWire research@example.com" } });
+    const xml = await res.text();
+
+    const entries: Array<{ title: string; url: string; date: string }> = [];
+    const entryMatches = xml.split("<entry>").slice(1);
+    for (const entry of entryMatches) {
+      const titleMatch = entry.match(/<title>(.*?)<\/title>/);
+      const linkMatch = entry.match(/<link[^>]*href="([^"]+)"/);
+      const updatedMatch = entry.match(/<updated>(.*?)<\/updated>/);
+      if (titleMatch && linkMatch) {
+        entries.push({
+          title: titleMatch[1].replace(/<[^>]+>/g, "").trim(),
+          url: linkMatch[1],
+          date: updatedMatch ? updatedMatch[1] : new Date().toISOString(),
+        });
+      }
+    }
+    return entries;
+  } catch (err) {
+    console.error(`  EDGAR fetch failed for CIK ${cik}:`, err);
+    return [];
+  }
+}
+
+async function backfillEdgar() {
   const existing = loadArticles();
   const existingUrls = new Set(existing.map((a) => a.url));
   let nextId = existing.length > 0 ? Math.max(...existing.map((a) => a.id)) + 1 : 1;
   let newCount = 0;
-  let start = 0;
 
-  while (start < maxResults) {
-    const url = `${ARXIV_API}?search_query=${query}&start=${start}&max_results=100&sortBy=submittedDate&sortOrder=descending`;
-    console.log(`  Fetching arXiv ${source} (${start}-${start + 100})...`);
+  const targets = [
+    { cik: "0000320193", formType: "10-K", source: "SEC EDGAR (Apple)", category: "regulation" },
+    { cik: "0000789019", formType: "10-K", source: "SEC EDGAR (Microsoft)", category: "regulation" },
+    { cik: "0001018724", formType: "10-K", source: "SEC EDGAR (Amazon)", category: "regulation" },
+    { cik: "0001045810", formType: "10-K", source: "SEC EDGAR (NVIDIA)", category: "regulation" },
+  ];
 
-    try {
-      const res = await fetch(url);
-      const xml = await res.text();
+  for (const t of targets) {
+    console.log(`  Fetching ${t.source} recent ${t.formType} filings...`);
+    const filings = await fetchEdgarRecent(t.cik, t.formType, 10);
 
-      const entries = xml.split("<entry>").slice(1);
-      if (entries.length === 0) break;
+    for (const f of filings) {
+      if (existingUrls.has(f.url)) continue;
 
-      for (const entry of entries) {
-        const idMatch = entry.match(/<id>(.*?)<\/id>/);
-        const titleMatch = entry.match(/<title>(.*?)<\/title>/s);
-        const summaryMatch = entry.match(/<summary>(.*?)<\/summary>/s);
-        const dateMatch = entry.match(/<published>(.*?)<\/published>/);
-        const authorMatches = [...entry.matchAll(/<name>(.*?)<\/name>/g)];
+      const article: StoredArticle = {
+        id: nextId++,
+        title: f.title,
+        url: f.url,
+        source: t.source,
+        author: "SEC EDGAR",
+        excerpt: f.title,
+        content: `${t.formType} filing — see filing index at ${f.url}`,
+        category: t.category,
+        tags: [t.category, "sec-filing"],
+        publicationDate: f.date,
+        imageUrl: null,
+        importanceScore: 70,
+        companies: [],
+        technologies: [],
+        processed: true,
+      };
 
-        const paperUrl = idMatch ? idMatch[1].trim() : "";
-        if (!paperUrl || existingUrls.has(paperUrl)) continue;
-
-        const title = titleMatch
-          ? titleMatch[1].replace(/\s+/g, " ").trim()
-          : "Unknown";
-        const summary = summaryMatch
-          ? summaryMatch[1].replace(/\s+/g, " ").trim().slice(0, 1000)
-          : "";
-        const date = dateMatch ? dateMatch[1].trim() : new Date().toISOString();
-        const authors = authorMatches.map((m) => m[1].trim()).slice(0, 3).join(", ") || "Unknown";
-
-        const article: StoredArticle = {
-          id: nextId++,
-          title,
-          url: paperUrl.replace("arxiv.org/abs/", "arxiv.org/abs/"),
-          source,
-          author: authors,
-          excerpt: summary.slice(0, 300),
-          content: summary,
-          category,
-          tags: [category],
-          publicationDate: date,
-          imageUrl: null,
-          importanceScore: 50,
-          companies: [],
-          technologies: [],
-          processed: false,
-        };
-
-        existing.push(article);
-        existingUrls.add(paperUrl);
-        newCount++;
-      }
-
-      start += 100;
-    } catch (err) {
-      console.error(`  Error at ${start}:`, err);
-      break;
+      existing.push(article);
+      existingUrls.add(f.url);
+      newCount++;
     }
+
+    await new Promise((r) => setTimeout(r, 500));
   }
 
   saveArticles(existing);
-  console.log(`  → Added ${newCount} new articles from ${source}`);
+  console.log(`  → Added ${newCount} new SEC filings`);
   return newCount;
 }
 
 async function main() {
-  console.log("Backfilling historical articles...\n");
+  console.log("Backfilling historical SEC filings...\n");
 
-  let total = 0;
+  const total = await backfillEdgar();
 
-  total += await backfillArxiv("all:AI+AND+cat:cs.AI", "arXiv AI", "research", 200);
-  total += await backfillArxiv("all:Machine+learning+AND+cat:cs.LG", "arXiv ML", "research", 200);
-  total += await backfillArxiv("all:robotics+AND+cat:cs.RO", "arXiv Robotics", "research", 200);
-  total += await backfillArxiv("all:computer+vision+AND+cat:cs.CV", "arXiv Computer Vision", "research", 200);
-  total += await backfillArxiv("all:natural+language+AND+cat:cs.CL", "arXiv Computation", "research", 200);
-
-  // Re-import to SQLite
-  const { importFromJson, exportToJson } = await import("../src/lib/db/index");
+  // Mirror to SQLite
+  const { importFromJson } = await import("../src/lib/db/index");
   importFromJson();
-  const dbCount = exportToJson();
   closeDb();
 
-  console.log(`\nDone! Added ${total} backdated articles. Total: ${dbCount}`);
+  console.log(`\nDone! Added ${total} backdated filings.`);
 }
 
 main().catch(console.error);
