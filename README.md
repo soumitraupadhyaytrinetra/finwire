@@ -1,191 +1,124 @@
-# Lipi
+# FinWire
 
-A typography-first Astro template for long-form writing. Built for essays, travel notes, developer journals, and personal archives — publishing environments where the words come first.
+A finance and markets news intelligence platform. Aggregates headlines from major wires, exchanges, regulators, and analyst outlets across 8 categories — markets, stocks, crypto, banking, fintech, regulation, economy, and forex.
 
-**[Live Demo](https://astro-lipi.pages.dev)** · **[Source](https://github.com/thelocalhoststudio/lipi)**
+**Live demo:** _(deploy after launch)_
 
-> **Lipi** (लिपि) is the Sanskrit word for script, the written form of a language.
+## What FinWire is
 
-![Lipi preview](./public/lipi-preview.png)
+FinWire is a static site that crawls ~25 RSS feeds from Reuters, Bloomberg, CNBC, MarketWatch, SEC, Federal Reserve, ECB, CoinDesk, Finextra, and others, then surfaces them through a category-indexed reading experience. Built on Astro, designed for fast page loads and zero-tracking browsing.
 
----
-
-## What Lipi is for
-
-Lipi is a publishing template, not a general-purpose blog theme. It is designed for writers who publish chronologically and want their site to feel like a considered publication rather than a web application. It is not a good fit for sites that need sidebars, comment sections, newsletter embeds, or dashboards.
-
-The visual design takes its cues from the [Kami](https://kami.tw93.fun) design language: warm parchment ground, a constrained reading measure (68 ch), generous line-height, and a single terracotta accent. The output is static HTML. The typography holds under Cmd+P.
-
----
+It is the finance-sector sibling of [DeepWire](https://github.com/Himan-D/deepwire), which covers AI and deep-tech instead.
 
 ## Features
 
-- **Literata** body type, **Manrope** UI type, **Fira Code** for code, **Caveat** for annotations
-- Light and dark themes via CSS custom properties, no JavaScript required for switching
-- Warm neutral colour scale with a single brand accent — fully customisable in one file
-- Timeline-based archive grouped by year
-- Tag pages and tag-driven related posts
-- Reading progress indicator via CSS scroll-driven animations
-- Dynamic per-post OG images generated with Satori — no manual image creation
-- Full-text search via Pagefind — static index, no external API, no tracking
-- RSS feed and sitemap included
-- Shiki syntax highlighting with light/dark token mapping
-- GitHub-Flavored Markdown and MDX support
-- Paper texture and print-aware styles (Cmd+P layout preserved)
-- Single configuration file: `configs/lipi.config.ts`
-- Minimal client-side JavaScript
-
----
+- 8 category landing pages (Markets, Stocks, Crypto, Banking, Fintech, Regulation, Economy, Forex)
+- Article detail pages with TL;DR, full text, importance score, related stories
+- Trending sidebar with tag-driven growth tracking
+- Full-text search across all ingested articles
+- Dark theme, terracotta accent, Manrope typography — identical visual treatment to DeepWire
+- Read-only admin dashboard at `/admin` showing counts, source list, and trends
+- All static HTML output — no client-side database, no third-party trackers
+- Article ingestion pipeline via RSS → keyword classifier → optional full-text crawl → JSON store
 
 ## Getting Started
 
-### Use this template
+### Clone and install
 
 ```sh
-npm create astro@latest -- --template thelocalhoststudio/lipi
-```
-
-### Clone manually
-
-```sh
-git clone https://github.com/thelocalhoststudio/lipi my-site
-cd my-site
+git clone https://github.com/Himan-D/finwire.git
+cd finwire
 npm install
 npm run dev
 ```
 
-The dev server starts at `http://localhost:4321`.
+Dev server runs at `http://localhost:4321/`.
 
----
+### Ingest finance feeds
+
+```sh
+npm run ingest              # all sources
+npm run ingest "CoinDesk"   # one source only
+```
+
+### Other worker commands
+
+| Command | What it does |
+|---|---|
+| `npm run dev` | Start dev server |
+| `npm run build` | Build to `./dist/` |
+| `npm run preview` | Preview the production build |
+| `npm run ingest` | Pull RSS from all 24 sources into `data/articles.json` |
+| `npm run process` | Backfill full content for unprocessed articles |
+| `npm run backfill` | Pull recent SEC EDGAR 10-K filings |
+| `npm run db:init` | Mirror `data/articles.json` ↔ SQLite at `data/finwire.db` |
+| `npm test` | Run classifier unit tests |
 
 ## Configuration
 
-All site-level settings live in `configs/lipi.config.ts`. Open it, change the values, and the site reflects the changes.
+All site identity lives in `src/config.ts`:
 
 ```ts
-// configs/lipi.config.ts
-const userConfig: UserConfig = {
-  title: "Your Publication",
-  description: "What your site is about.",
-  url: "https://yoursite.com",
-  author: "Your Name",
-
-  navigation: [
-    { title: "Writing", url: "/posts" },
-    { title: "Archive", url: "/archive" },
-    { title: "About", url: "/about" },
-  ],
-
-  showThemeToggle: true,
-  showReadingTime: true,
-  heroVariant: "default",   // "default" | "studio"
+export const siteConfig = {
+  name: "FinWire",
+  description: "Finance & Markets News Intelligence",
+  url: "https://finwire.app",
+  // ...
 };
+
+export const categories = [
+  { id: "markets", label: "Markets", icon: "📈" },
+  // ...7 more
+];
 ```
 
-The full configuration reference is in the [Configuring Lipi](https://astro-lipi.pages.dev/posts/configuring-lipi) post included with the template.
-
----
+The RSS source list is in `src/lib/rss/sources.ts`. The category classifier vocabulary is in `src/lib/ai/classify.ts`.
 
 ## Project Structure
 
-```txt
-lipi/
-├── configs/
-│   └── lipi.config.ts        # All site settings live here
-├── public/
-│   └── favicon.svg
-├── src/
-│   ├── content/
-│   │   ├── posts/            # Markdown and MDX posts
-│   │   └── pages/            # About, home intro, colophon, etc.
-│   ├── styles/
-│   │   ├── theme.css         # Colour tokens and font variables
-│   │   ├── typography.css    # Prose styles
-│   │   └── global.css        # Base reset and utilities
-│   ├── components/
-│   ├── layouts/
-│   ├── pages/
-│   └── utils/
+```
+finwire/
 ├── astro.config.mjs
-└── package.json
+├── package.json
+├── vitest.config.ts
+├── data/                       # runtime: articles.json, sources-state.json, finwire.db
+├── public/
+├── src/
+│   ├── config.ts               # siteConfig + categories + nav
+│   ├── styles/global.css       # design tokens (identical to deepwire)
+│   ├── layouts/{Base,Admin}Layout.astro
+│   ├── components/
+│   │   ├── layout/             # Header, Footer
+│   │   ├── news/               # NewsCard, HeroSection, TrendingTopics, ...
+│   │   ├── search/SearchBar.astro
+│   │   └── ui/                 # Badge, TimeAgo
+│   ├── lib/
+│   │   ├── data.ts             # JSON-backed read API
+│   │   ├── utils.ts
+│   │   ├── rss/{parser,sources}.ts
+│   │   ├── ai/classify.ts      # keyword + source-hint classifier
+│   │   ├── content-crawler.ts  # jsdom + Mozilla Readability
+│   │   └── db/{index,schema}.ts
+│   └── pages/
+│       ├── index.astro
+│       ├── trending.astro
+│       ├── markets.astro, stocks.astro, crypto.astro,
+│       ├── banking.astro, fintech.astro, regulation.astro,
+│       ├── economy.astro, forex.astro
+│       ├── search.astro
+│       ├── story/[slug].astro
+│       ├── company/[slug].astro
+│       ├── technology/[slug].astro
+│       └── admin/{index,feeds,jobs,trends}.astro
+├── tests/
+│   └── ai/classify.test.ts
+└── workers/
+    ├── db-migrate.ts
+    ├── rss-ingestion.ts
+    ├── article-processing.ts
+    └── backfill.ts             # SEC EDGAR puller
 ```
-
-Posts go in `src/content/posts/`. Subdirectories are supported. Folders prefixed with `_` are stripped from the URL (useful for year-based organisation without year segments in slugs).
-
----
-
-## Commands
-
-| Command | Action |
-| --- | --- |
-| `npm install` | Install dependencies |
-| `npm run dev` | Start dev server at `localhost:4321` |
-| `npm run build` | Build to `./dist/`, generate Pagefind index |
-| `npm run preview` | Preview the production build locally |
-
----
-
-## Customising
-
-### Colours
-
-The colour system is a single warm neutral scale (`--base-50` through `--base-950`) plus one brand colour (`--brand`). Change both in `src/styles/theme.css`:
-
-```css
-:root {
-  --base-50:  #F5F4ED;   /* ground */
-  --base-950: #141413;   /* near-black */
-  --brand:    #E85D2A;   /* accent */
-}
-```
-
-To create a named colour scheme, add a `[data-theme="name"]` block and set the `data-theme` attribute on `<html>`.
-
-### Typefaces
-
-Fonts are configured in `astro.config.mjs` under the `fonts` array. Swap the `name` field to any typeface available on Fontsource.
-
----
-
-## Content Schema
-
-### Posts (`src/content/posts/`)
-
-| Field | Type | Required | Notes |
-| --- | --- | --- | --- |
-| `title` | string | Yes | |
-| `description` | string | Yes | Shown as deck on featured post and in feeds |
-| `published` | date | Yes | `YYYY-MM-DD` |
-| `updated` | date | No | Shows "Updated on" in post metadata |
-| `category` | string | No | Defaults to `Travels` |
-| `tags` | string[] | No | Drives related posts |
-| `cover` | image / string | No | Overrides the auto-generated OG image |
-| `draft` | boolean | No | Excluded from production builds |
-| `lang` | string | No | Per-post language override |
-
-### Pages (`src/content/pages/`)
-
-| Field | Type | Required |
-| --- | --- | --- |
-| `title` | string | Yes |
-| `description` | string | No |
-| `updated` | date | Yes |
-| `draft` | boolean | No |
-
----
-
-## Credits
-
-- Typography inspired by the [Kami](https://kami.tw93.fun) design language
-- Body typeface: [Literata](https://fonts.google.com/specimen/Literata) by TypeTogether
-- UI typeface: [Manrope](https://fonts.google.com/specimen/Manrope) by Mikhail Sharanda
-- Monospace: [Fira Code](https://github.com/tonsky/FiraCode) by Nikita Prokopov
-- Annotation: [Caveat](https://fonts.google.com/specimen/Caveat) by Pablo Impallari
-- Built with [Astro](https://astro.build), [Tailwind CSS v4](https://tailwindcss.com)
-- Search powered by [Pagefind](https://pagefind.app)
-
----
 
 ## License
 
-MIT — made by [The Localhost Studio](https://github.com/thelocalhoststudio).
+MIT.
