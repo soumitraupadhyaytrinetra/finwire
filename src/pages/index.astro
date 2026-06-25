@@ -9,13 +9,14 @@ import { getTopStories, getTrendingArticles, getArticlesByCategory, getTrendTopi
 
 const topStories = getTopStories(15);
 const trending = getTrendingArticles(4);
-const aiArticles = getArticlesByCategory("ai", 6);
-const researchArticles = getArticlesByCategory("research", 4);
-const startupArticles = getArticlesByCategory("startups", 4);
-const securityArticles = getArticlesByCategory("security", 4);
-const spaceArticles = getArticlesByCategory("space", 4);
-const semiconductorsArticles = getArticlesByCategory("semiconductors", 4);
-const roboticsArticles = getArticlesByCategory("robotics", 4);
+const marketsArticles = getArticlesByCategory("markets", 6);
+const stocksArticles = getArticlesByCategory("stocks", 4);
+const cryptoArticles = getArticlesByCategory("crypto", 4);
+const bankingArticles = getArticlesByCategory("banking", 4);
+const fintechArticles = getArticlesByCategory("fintech", 4);
+const regulationArticles = getArticlesByCategory("regulation", 4);
+const economyArticles = getArticlesByCategory("economy", 4);
+const forexArticles = getArticlesByCategory("forex", 4);
 const trendTopics = getTrendTopics();
 ---
 
@@ -53,42 +54,42 @@ const trendTopics = getTrendTopics();
         </div>
       </section>
 
-      {aiArticles.length > 0 && (
+      {marketsArticles.length > 0 && (
         <section class="mb-10">
           <div class="flex items-center justify-between mb-5">
-            <h2 class="text-sm font-semibold tracking-wide uppercase text-[var(--text-tertiary)] mb-0">AI</h2>
-            <a href="/ai" class="text-xs font-medium text-[var(--accent)] hover:underline">View all &rarr;</a>
+            <h2 class="text-sm font-semibold tracking-wide uppercase text-[var(--text-tertiary)] mb-0">Markets</h2>
+            <a href="/markets" class="text-xs font-medium text-[var(--accent)] hover:underline">View all &rarr;</a>
           </div>
           <div class="space-y-3">
-            {aiArticles.map((article) => (
+            {marketsArticles.map((article) => (
               <NewsCard {...article} publicationDate={new Date(article.publicationDate)} />
             ))}
           </div>
         </section>
       )}
 
-      {researchArticles.length > 0 && (
+      {stocksArticles.length > 0 && (
         <section class="mb-10">
           <div class="flex items-center justify-between mb-5">
-            <h2 class="text-sm font-semibold tracking-wide uppercase text-[var(--text-tertiary)] mb-0">Research</h2>
-            <a href="/research" class="text-xs font-medium text-[var(--accent)] hover:underline">View all &rarr;</a>
+            <h2 class="text-sm font-semibold tracking-wide uppercase text-[var(--text-tertiary)] mb-0">Stocks</h2>
+            <a href="/stocks" class="text-xs font-medium text-[var(--accent)] hover:underline">View all &rarr;</a>
           </div>
           <div class="space-y-3">
-            {researchArticles.slice(0, 3).map((article) => (
+            {stocksArticles.slice(0, 3).map((article) => (
               <NewsCard {...article} publicationDate={new Date(article.publicationDate)} />
             ))}
           </div>
         </section>
       )}
 
-      {startupArticles.length > 0 && (
+      {cryptoArticles.length > 0 && (
         <section class="mb-10">
           <div class="flex items-center justify-between mb-5">
-            <h2 class="text-sm font-semibold tracking-wide uppercase text-[var(--text-tertiary)] mb-0">Startups</h2>
-            <a href="/startups" class="text-xs font-medium text-[var(--accent)] hover:underline">View all &rarr;</a>
+            <h2 class="text-sm font-semibold tracking-wide uppercase text-[var(--text-tertiary)] mb-0">Crypto</h2>
+            <a href="/crypto" class="text-xs font-medium text-[var(--accent)] hover:underline">View all &rarr;</a>
           </div>
           <div class="space-y-3">
-            {startupArticles.slice(0, 3).map((article) => (
+            {cryptoArticles.slice(0, 3).map((article) => (
               <NewsCard {...article} publicationDate={new Date(article.publicationDate)} />
             ))}
           </div>
@@ -96,12 +97,12 @@ const trendTopics = getTrendTopics();
       )}
 
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-10">
-        {categories.filter(c => ["security", "space", "semiconductors", "robotics"].includes(c.id)).map((cat) => {
+        {categories.filter(c => ["banking", "forex", "economy", "regulation"].includes(c.id)).map((cat) => {
           const count = {
-            security: securityArticles.length,
-            space: spaceArticles.length,
-            semiconductors: semiconductorsArticles.length,
-            robotics: roboticsArticles.length,
+            banking: bankingArticles.length,
+            forex: forexArticles.length,
+            economy: economyArticles.length,
+            regulation: regulationArticles.length,
           }[cat.id] || 0;
           return (
             <a href={`/${cat.id}`} class="news-card p-6 text-center block hover:border-[var(--accent)] transition-colors">
