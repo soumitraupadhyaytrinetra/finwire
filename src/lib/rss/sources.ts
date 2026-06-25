@@ -26,8 +26,9 @@ export const defaultSources: RSSSource[] = [
   { name: "Cointelegraph", feedUrl: "https://cointelegraph.com/rss", url: "https://cointelegraph.com", category: "crypto", authority: 7 },
 
   // Banking
-  { name: "American Banker", feedUrl: "https://www.americanbanker.com/feed", url: "https://www.americanbanker.com", category: "banking", authority: 8 },
-  { name: "Banking Dive", feedUrl: "https://www.bankingdive.com/feed/", url: "https://www.bankingdive.com", category: "banking", authority: 6 },
+  { name: "American Banker", feedUrl: "https://www.americanbanker.com/feed?rss=true", url: "https://www.americanbanker.com", category: "banking", authority: 8 },
+  { name: "Banking Dive", feedUrl: "https://www.bankingdive.com/feeds/news/", url: "https://www.bankingdive.com", category: "banking", authority: 6 },
+  { name: "PYMNTS", feedUrl: "https://www.pymnts.com/feed/", url: "https://www.pymnts.com", category: "banking", authority: 7 },
 
   // Fintech
   { name: "Finextra", feedUrl: "https://www.finextra.com/rss/feed.aspx", url: "https://www.finextra.com", category: "fintech", authority: 7 },

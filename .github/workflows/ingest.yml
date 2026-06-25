@@ -1,77 +1,73 @@
-name: RSS Ingestion
+name: Refresh News
+
+# Pulls fresh articles from all RSS sources, commits data/articles.json back
+# to main, which triggers Render to auto-rebuild and redeploy.
 
 on:
+  # Every 6 hours (UTC: 00:00, 06:00, 12:00, 18:00). Tuned to fit GitHub
+  # Actions' free tier (2,000 min/month on private repos) given FinWire's
+  # ~12 min per full-site ingest.
   schedule:
-    - cron: "0 */2 * * *"
+    - cron: "0 */6 * * *"
+  # Manual trigger from the Actions tab.
   workflow_dispatch:
+  # Auto-run when source config changes are pushed.
   push:
     branches: [main]
     paths:
       - "src/lib/rss/sources.ts"
+      - "src/lib/ai/classify.ts"
       - "workers/rss-ingestion.ts"
 
+# Don't run two refreshes at the same time.
+concurrency:
+  group: refresh-news
+  cancel-in-progress: false
+
+# Needed for the bot to commit and push data/ back to main.
+permissions:
+  contents: write
+
 jobs:
-  ingest:
+  refresh:
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
+        with:
+          # Full history so the bot can push without shallow-clone errors.
+          fetch-depth: 0
 
       - uses: actions/setup-node@v4
         with:
           node-version: "22"
+          cache: npm
 
       - name: Install dependencies
         run: npm ci
 
-      - name: Init SQLite DB
-        run: npm run db:init
-
-      - name: Run RSS ingestion
+      - name: Pull fresh articles from all RSS feeds
         run: npm run ingest
-        env:
-          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
 
-      - name: Check for changes
-        id: git-check
-        run: |
-          git add -A
-          git diff --staged --quiet || echo "changed=true" >> $GITHUB_OUTPUT
-
-      - name: Commit updated articles
-        if: steps.git-check.outputs.changed == 'true'
-        run: |
-          git config user.name "deepwire-bot"
-          git config user.email "bot@deepwire.ai"
-          git commit -m "chore: :robot: auto-ingest RSS articles"
-          git push
-
-      - name: Build site
+      - name: Build site (sanity check — fails the run if data is corrupt)
         run: npm run build
 
-      - name: Deploy to GitHub Pages
-        uses: peaceiris/actions-gh-pages@v4
-        if: github.ref == 'refs/heads/main'
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./dist
-
-  crawl:
-    needs: ingest
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: actions/setup-node@v4
-        with:
-          node-version: "22"
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Crawl full article content
-        run: npm run process
-
-      - name: Commit crawled content
+      - name: Detect data changes
+        id: check
         run: |
-          git add -A
-          git diff --staged --quiet || (git config user.name "deepwire-bot" && git config user.email "bot@deepwire.ai" && git commit -m "chore: :robot: crawl full article content" && git push)
+          git add data/
+          if git diff --staged --quiet; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            echo "No new articles - skipping commit."
+          else
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+            echo "New articles staged."
+          fi
+
+      - name: Commit and push data/
+        if: steps.check.outputs.changed == 'true'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "chore: :newspaper: refresh news"
+          git push

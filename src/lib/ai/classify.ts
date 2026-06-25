@@ -92,6 +92,7 @@ export const SOURCE_CATEGORY_HINTS: Record<string, string[]> = {
   "Finextra": ["fintech"],
   "American Banker": ["banking"],
   "Banking Dive": ["banking"],
+  "PYMNTS": ["banking"],
   "Forbes": ["fintech"],
   "Fortune": ["fintech"],
   "Business Insider": ["economy"],
