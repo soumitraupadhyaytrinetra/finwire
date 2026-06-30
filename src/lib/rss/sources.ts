@@ -8,11 +8,17 @@ export interface RSSSource {
 
 export const defaultSources: RSSSource[] = [
   // Markets / general
+  // Bloomberg Markets removed 2026-06-30 — paywalled article pages meant
+  // every Bloomberg story had an empty body / no TL;DR. The four sources
+  // below all return scrapeable article pages; OilPrice.com added for
+  // commodity coverage, Business Insider Markets moved up from economy
+  // because it's a better fit here.
   { name: "Reuters Business", feedUrl: "https://www.reutersagency.com/feed/?best-topics=business&post_type=best", url: "https://www.reuters.com/business/", category: "markets", authority: 10 },
-  { name: "Bloomberg Markets", feedUrl: "https://feeds.bloomberg.com/markets/news.rss", url: "https://www.bloomberg.com/markets", category: "markets", authority: 10 },
   { name: "CNBC", feedUrl: "https://www.cnbc.com/id/100003114/device/rss/rss.html", url: "https://www.cnbc.com", category: "markets", authority: 8 },
   { name: "MarketWatch", feedUrl: "https://feeds.marketwatch.com/marketwatch/topstories/", url: "https://www.marketwatch.com", category: "markets", authority: 8 },
   { name: "Yahoo Finance", feedUrl: "https://finance.yahoo.com/news/rssindex", url: "https://finance.yahoo.com", category: "markets", authority: 7 },
+  { name: "Business Insider Markets", feedUrl: "https://markets.businessinsider.com/rss/news", url: "https://markets.businessinsider.com", category: "markets", authority: 7 },
+  { name: "OilPrice.com", feedUrl: "https://oilprice.com/rss/main", url: "https://oilprice.com", category: "markets", authority: 7 },
 
   // Stocks / investing
   { name: "Financial Times", feedUrl: "https://www.ft.com/rss/home", url: "https://www.ft.com", category: "stocks", authority: 9 },
@@ -42,7 +48,6 @@ export const defaultSources: RSSSource[] = [
 
   // Economy
   { name: "The Economist", feedUrl: "https://www.economist.com/finance-and-economics/rss.xml", url: "https://www.economist.com/finance-and-economics", category: "economy", authority: 9 },
-  { name: "Business Insider", feedUrl: "https://www.businessinsider.com/sai/rss", url: "https://www.businessinsider.com", category: "economy", authority: 7 },
 
   // Forex
   { name: "FXStreet", feedUrl: "https://www.fxstreet.com/rss/news", url: "https://www.fxstreet.com", category: "forex", authority: 7 },
