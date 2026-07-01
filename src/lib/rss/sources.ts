@@ -24,9 +24,17 @@ export const defaultSources: RSSSource[] = [
   // article pages with rich descriptions. Added to replace the volume that
   // Bloomberg Markets used to provide.
   { name: "InvestingLive", feedUrl: "https://www.forexlive.com/feed", url: "https://investinglive.com", category: "markets", authority: 8 },
+  // South China Morning Post — very high volume (50+ items per update),
+  // covers China / Hong Kong / Asia / global business & markets. Scrapeable
+  // article pages, full descriptions in RSS. Best free Asia/global feed
+  // we found that doesn't block.
+  { name: "South China Morning Post", feedUrl: "https://www.scmp.com/rss/91/feed", url: "https://www.scmp.com", category: "markets", authority: 8 },
 
   // Stocks / investing
-  { name: "Financial Times", feedUrl: "https://www.ft.com/rss/home", url: "https://www.ft.com", category: "stocks", authority: 9 },
+  // Financial Times removed 2026-07-01 — paywalled article pages meant
+  // every FT story landed with an empty body / no TL;DR. Same problem as
+  // Bloomberg Markets. Volume and global coverage replaced below with
+  // SCMP (Asia/global) and HT Business (India + global).
   { name: "Wall Street Journal", feedUrl: "https://feeds.a.dj.com/rss/RSSMarkets.xml", url: "https://www.wsj.com", category: "stocks", authority: 9 },
   { name: "Seeking Alpha", feedUrl: "https://seekingalpha.com/feed.xml", url: "https://seekingalpha.com", category: "stocks", authority: 7 },
   { name: "Investing.com", feedUrl: "https://www.investing.com/rss/news.rss", url: "https://www.investing.com", category: "stocks", authority: 6 },
@@ -53,6 +61,9 @@ export const defaultSources: RSSSource[] = [
 
   // Economy
   { name: "The Economist", feedUrl: "https://www.economist.com/finance-and-economics/rss.xml", url: "https://www.economist.com/finance-and-economics", category: "economy", authority: 9 },
+  // Hindustan Times Business — India + global business, fresh updates,
+  // scrapeable. Adds South Asia coverage.
+  { name: "Hindustan Times Business", feedUrl: "https://www.hindustantimes.com/feeds/rss/business/rssfeed.xml", url: "https://www.hindustantimes.com/business", category: "economy", authority: 8 },
 
   // Forex
   { name: "FXStreet", feedUrl: "https://www.fxstreet.com/rss/news", url: "https://www.fxstreet.com", category: "forex", authority: 7 },
