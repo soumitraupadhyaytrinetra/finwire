@@ -19,6 +19,11 @@ export const defaultSources: RSSSource[] = [
   { name: "Yahoo Finance", feedUrl: "https://finance.yahoo.com/news/rssindex", url: "https://finance.yahoo.com", category: "markets", authority: 7 },
   { name: "Business Insider Markets", feedUrl: "https://markets.businessinsider.com/rss/news", url: "https://markets.businessinsider.com", category: "markets", authority: 7 },
   { name: "OilPrice.com", feedUrl: "https://oilprice.com/rss/main", url: "https://oilprice.com", category: "markets", authority: 7 },
+  // InvestingLive (formerly ForexLive) — very high frequency FX / central-bank
+  // / markets desk. Hourly update, dozens of items per day, scrapeable
+  // article pages with rich descriptions. Added to replace the volume that
+  // Bloomberg Markets used to provide.
+  { name: "InvestingLive", feedUrl: "https://www.forexlive.com/feed", url: "https://investinglive.com", category: "markets", authority: 8 },
 
   // Stocks / investing
   { name: "Financial Times", feedUrl: "https://www.ft.com/rss/home", url: "https://www.ft.com", category: "stocks", authority: 9 },
